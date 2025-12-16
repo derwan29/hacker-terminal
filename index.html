@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js');
+}
+</script>
+<meta charset="UTF-8">
+<title>Hacker Terminal Loop</title>
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        width: 100vw;
+        height: 100vh;
+        background: #000;
+        overflow: hidden;
+        font-family: "Ubuntu Mono", monospace;
+    }
+
+    /* Scanline effect */
+    body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: repeating-linear-gradient(
+            to bottom,
+            rgba(0,255,0,0.05),
+            rgba(0,255,0,0.05) 1px,
+            transparent 1px,
+            transparent 3px
+        );
+        pointer-events: none;
+    }
+
+    .terminal {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+        padding: 40px;
+        color: #00ff00;
+        font-size: 22px;
+        white-space: pre-line;
+        text-shadow: 0 0 8px #00ff00;
+        transition: transform 0.6s ease;
+    }
+
+    .cursor {
+        display: inline-block;
+        width: 12px;
+        background: #00ff00;
+        margin-left: 2px;
+        animation: blink 1s steps(1) infinite;
+    }
+
+    @keyframes blink {
+        50% { opacity: 0; }
+    }
+</style>
+</head>
+<body>
+
+<div class="terminal" id="terminal">
+<span id="text"></span><span class="cursor">&nbsp;</span>
+</div>
+
+<script>
+    const commands = [
+        "root@ubuntu:~# nmap -sV 192.168.1.1",
+        "Starting Nmap 7.94 ( https://nmap.org )",
+        "PORT     STATE SERVICE VERSION",
+        "22/tcp   open  ssh     OpenSSH 8.9p1",
+        "80/tcp   open  http    Apache 2.4.52",
+        "",
+        "root@ubuntu:~# echo \"Life is too short!\"",
+        "Life is too short!"
+    ];
+
+    const textEl = document.getElementById("text");
+    const terminal = document.getElementById("terminal");
+
+    let cmdIndex = 0;
+    let charIndex = 0;
+
+    function randomMove() {
+        const y = Math.floor(Math.random() * 120) - 60;
+        terminal.style.transform = `translate(-50%, -50%) translateY(${y}px)`;
+    }
+
+    function resetTerminal() {
+        textEl.textContent = "";
+        cmdIndex = 0;
+        charIndex = 0;
+        randomMove();
+        setTimeout(typeCommand, 500);
+    }
+
+    function typeCommand() {
+        if (cmdIndex >= commands.length) {
+            setTimeout(resetTerminal, 2000);
+            return;
+        }
+
+        if (charIndex < commands[cmdIndex].length) {
+            textEl.textContent += commands[cmdIndex].charAt(charIndex);
+            charIndex++;
+            setTimeout(typeCommand, 40 + Math.random() * 40);
+        } else {
+            textEl.textContent += "\n";
+            charIndex = 0;
+            cmdIndex++;
+            randomMove();
+            setTimeout(typeCommand, 500);
+        }
+    }
+
+    typeCommand();
+</script>
+
+</body>
+</html>
